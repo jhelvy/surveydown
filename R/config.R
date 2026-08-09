@@ -1634,6 +1634,18 @@ extract_question_structure_html <- function(html_content) {
       }
     }
 
+    # Extract options for ranking questions. Ranking lists are hand-built markup,
+    # so they carry none of the Shiny input classes the option
+    # extraction below keys off.
+    if(grepl("sd-ranking-list", type, fixed = TRUE)){
+      item_nodes <- rvest::html_nodes(question_node, ".sd-ranking-item")
+      if(length(item_nodes) > 0){
+        options <- rvest::html_atr(item_nodes, "data-value")
+        names(options) <- rvest::html_text(item_nodes, trim = TRUE)
+        question_structure[[question_id]]$options <- as.list(options)
+      }
+    }
+
     # Extract options for the question ( mc, *_multiple, *_buttons, and select)
     if (length(type) > 0 && grepl("radio|checkbox|select|matrix", type)) {
       if (is_matrix) {
@@ -1855,7 +1867,8 @@ write_question_structure_yaml <- function(question_structure, file_yaml) {
     'js-range-slider sw-slider-text' = 'slider',
     'js-range-slider' = 'slider_numeric',
     'shiny-date-input form-group shiny-input-container' = 'date',
-    'shiny-date-range-input form-group shiny-input-container' = 'daterange'
+    'shiny-date-range-input form-group shiny-input-container' = 'daterange',
+    'sd-ranking-list' = 'ranking',
   )
 
   # Add index to each question (1-based, for display order tracking)
