@@ -393,7 +393,7 @@ qt_render_daterange <- function(a, ...) {
       id
     )
 
-    shiny::tagAppendChild(
+    shiny::tagAppendChild( 
       output,
       shiny::tags$script(htmltools::HTML(js_init))
     )
@@ -470,6 +470,42 @@ qt_render_matrix <- function(a, ...) {
         shiny::tags$tbody(rows)
       )
     )
+  })
+}
+
+qt_render_ranking <- function(a, ...){
+  with(a, {
+    # Hand-built markup rather than a Shiny input widget: the value is
+    # reported by ranking.js via Shiny.setInputValue() as the drag order
+    # changes (same approach the slider renderer uses its label -> value
+    # ramping).
+    labels <- names(choice_html(option))
+    items <- lapply(seq_along(option), function(i) {
+      shiny::tags$li(
+        class = "sd-ranking-item",
+        `data-value` = unname(option[i]),
+        shiny::tags$li(
+          class = "sd-ranking-item",
+          `data-value` = unname(option[i]),
+          shiny::tags$span(
+            class = "sd-ranking-label",
+            shiny::HTML(labels[i])
+          ),
+          shiny::tag$span(
+            class = "sd-ranking-handle",
+            `aria-hidden` = "true",
+            "\u2261"
+          )
+        )
+      )
+    })
+
+    shiny::div(
+      class = "sd-ranking-container",
+      shiny::tags$label(class = "control-label", label),
+      shiny::tags$ul(id = id, class = "sd-ranking-list", items)
+    )
+
   })
 }
 
@@ -589,6 +625,15 @@ qt_restore_daterange <- function(session, id, value, info) {
   }
 }
 
+qt_restore_ranking <- function(session, id, value, info){
+  # Stored pipe-joined; as.list() keeps it a JSON array even for one item
+  order <- split_stored_value(value)
+  session$sendCustomMessage(
+    "restoreRankingOrder",
+    list(id = id, order = as.list(order))
+  )
+}
+
 # -- Registry ----------------------------------------------------------------
 
 question_type_registry <- list(
@@ -674,6 +719,11 @@ question_type_registry <- list(
   matrix_multiple = list(
     render = qt_render_matrix,
     restore = NULL,
+    requires_option = TRUE
+  ),
+  ranking = list(
+    render = qt_render_ranking,
+    restore = qt_restore_ranking,
     requires_option = TRUE
   )
 )
