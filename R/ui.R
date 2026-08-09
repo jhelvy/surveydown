@@ -687,7 +687,7 @@ extract_head_content <- function(html_content) {
 #' `"mc"`, `"mc_multiple"`, `"mc_buttons"`, `"mc_multiple_buttons"`,
 #' `"mc_image"`, `"mc_multiple_image"`, `"text"`, `"textarea"`, `"numeric"`,
 #' `"slider"`, `"slider_numeric"`, `"date"`, `"daterange"`, `"matrix"`, and
-#' `"matrix_multiple"`. Defaults to `NULL`.
+#' `"matrix_multiple"`, `"ranking"`. Defaults to `NULL`.
 #' @param label Character string. The label for the UI element, which can be
 #' formatted with markdown. Defaults to `NULL`
 #' @param cols Integer. Number of columns for the `"textarea"` question type.
@@ -789,6 +789,7 @@ extract_head_content <- function(html_content) {
 #'   selection per row, radio buttons)
 #' - `"matrix_multiple"`: Matrix-style question where each row allows
 #'   multiple selections (checkboxes)
+#' - `"ranking"`: Ranking question where respondents can order options by preference
 #'
 #' For `"matrix"` and `"matrix_multiple"` type questions, use the `row`
 #' parameter to define the rows of the matrix. Each element in the `row`

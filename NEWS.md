@@ -8,7 +8,7 @@
 - New feature: `matrix_multiple` question type — a matrix where each row allows multiple selections (checkboxes), complementing the single-selection `matrix` type (radio buttons). Usage is identical to `matrix` (same `row` and `option` parameters); each row becomes a `<question_id>_<row_id>` sub-question stored as its own column, with multiple selections pipe-joined (e.g., `"fast|cheap"`). Row shuffling, required-question handling, and session restoration work the same as for `matrix`.
 
 - Enhancement: Sliders have been restyled. `slider` and `slider_numeric` questions now get a slim, theme-colored track with a clean circular handle and value bubble (previously ionRangeSlider shipped completely unstyled). The dense minor tick marks between positions are hidden; only the labeled major tick marks at the main breaks are shown.
-- Enhancement: `sd_reactive()` no longer warns when its expression fails simply because the questions it references are not answered yet (e.g., arithmetic on a blank value at session start). Question references (`input$x`, `all_data$x`, `sd_value()`, `sd_values()`) are extracted from the expression; if any referenced value is still blank when an error occurs, the error is treated as the expected "not answered yet" state and `""` is stored quietly. Genuine errors (all referenced values filled in, or no detectable references) still warn. For this detection to work, call `sd_value()` *inside* the `sd_reactive()` expression rather than capturing values in local variables beforehand.
+- Enhancement: `sd_reactive()` no longer warns when its expression fails simply because the questions it references are not answered yet (e.g., arithmetic on a blank value at session start). Question references (`input$x`, `all_data$x`, `sd_value()`, `sd_values()`) are extracted from the expression; if any referenced value is still blank when an error occurs, the error is treated as the expected "not answered yet" state and `""` is stored quietly. Genuine errors (all referenced values filled in, or no detectable references) still warn. For this detection to work, call `sd_value()` _inside_ the `sd_reactive()` expression rather than capturing values in local variables beforehand.
 
 - Bug fix: Navigating back to and then forward again past an answered matrix (or `matrix_multiple`) question no longer crashes the survey. The matrix parent question has no input of its own, so its stored value can be `NA`; the restoration guard now handles `NA` safely instead of erroring.
 - Bug fix: Multi-value answers (`mc_multiple`, `mc_multiple_buttons`, `daterange`, and range `slider_numeric`) are now correctly restored when a respondent navigates back to a page or refreshes. These answers are stored pipe-joined (e.g. `"red|blue"`), but the restoration logic was splitting on commas, so previously the inputs came back blank. They now split on the pipe to match how the values are stored.
@@ -27,6 +27,7 @@
 - Internal: Question types are now defined in a single registry (`R/question_types.R`). Each type provides a `render()` (build the UI) and `restore()` (re-apply a stored value when navigating back) function plus a `requires_option` flag. `sd_question()` and the page-restoration logic in `sd_server()` dispatch through this registry instead of long if/else chains, so adding a new question type touches one place. No change to existing behavior.
 
 - Testing: Added `tests/manual/` with chromote-based headless browser tests covering `sd_show_if()` (all condition styles, including cross-page `input$`/`all_data$` conditions), `sd_skip_if()` (simple and two-question skips, required-question blocking), `sd_stop_if()` (stop messages, priority over required warnings, per-page applicability), data storage in preview mode (every question type verified end-to-end in `preview_data.csv`, including pipe-joined multi-selects, slider label-to-value mapping, matrix sub-columns, `sd_store_value()`, and session metadata), and cookies/session restoration (page refresh restores the current page and answers, sessions resume with the same `session_id` and a single CSV row, and a fresh browser starts a new session). The tests run against bundled apps in `tests/manual/apps/`, so they are self-contained and machine-independent. `tests/manual/run-all.R` runs the whole suite (in parallel when `mirai` is installed). Not run by `devtools::test()` or R CMD check.
+- Added `ranking` question type: drag to reorder options, stored as a pipe-separated string in ranked order.
 
 # surveydown 1.2.0
 
@@ -50,7 +51,7 @@
 # surveydown 1.1.0
 
 - Bug fix (#246): Added a helper function that provides a vector of all preserved words that cannot be used as IDs and use it to prevent preserved IDs in `sd_store_value()`.
-- New feature (#247): `sd_values()` and `sd_value()` as new approach of accessing question values, replacing the Shiny default `input$`. `sd_values()` and `sd_value()` are able to restore user inputs from db after refreshing the page. They also accept either quoted question IDs or unquoted, so that either `sd_value(fruit)` or `sd_value("fruit")` is fine. They also support multiple parameters, which return into a vector of values. For example, `sd_value(fruit, vegetable)` returns `c("apple", "lettuce")`. sd_value()` is the alias of `sd_values()`, so they function the same.
+- New feature (#247): `sd_values()` and `sd_value()` as new approach of accessing question values, replacing the Shiny default `input$`. `sd_values()` and `sd_value()` are able to restore user inputs from db after refreshing the page. They also accept either quoted question IDs or unquoted, so that either `sd_value(fruit)` or `sd_value("fruit")` is fine. They also support multiple parameters, which return into a vector of values. For example, `sd_value(fruit, vegetable)` returns `c("apple", "lettuce")`. sd_value()`is the alias of`sd_values()`, so they function the same.
 - New feature (#248): Option shuffling supported for `mc`, `mc_buttons`, `mc_multiple`, and `mc_multiple_buttons`. Subquestion shuffling supported for `matrix`. In YAML of `survey.qmd`, 2 new keys are available: `shuffled` and `all-shuffled`. `shuffled` is used to list the question IDs of these 5 question types to have their options/subquestions randomly shuffled. `all-shuffled` is by default `false` and can be set to `true` to apply shuffling to all questions.
 - New feature (#248, continued): Indexed option shuffling. Use indexing to define what positions of options/subquestions you want to shuffle. For example, `question_id: 1-5` means to shuffle the first 5 options of the question, or the first 5 subquestions if it's a matrix question. Other supported syntax: `question_id: [1, 2, 4, 7]`, `question_id: [1-5, 8-10]`. No indexing means to shuffle all options/subquestions.
 - Breaking change: The `required-questions` and `all-questions-required` YAML keys are renamed as `required` and `all-required`, respectively.
@@ -68,7 +69,7 @@
 
 # surveydown 1.0.1
 
-- Bug fix (#243): Updated all internal templates and roxygen examples to latest UI established in v1.0.0. 
+- Bug fix (#243): Updated all internal templates and roxygen examples to latest UI established in v1.0.0.
 - Bug fix (#244): theme assignment with custom scss files in YAML now works properly, e.g. `theme: [united, custom.scss]`.
 - Progress bar update: Now users can define `barcolor` under the `theme-settings` YAML section to customize the progress bar color, accepting both text color names (over 140 supported by browser CSS) and hex color codes in 3 or 6 digits, e.g. `#FF5733` or `#F53`. If not defined, it shows `~` as the value in `settings.yml`, indicating it's using the default setting which follows the theme.
 - Documentation update: Removed the `inst/examples/` directory. Now all exported functions are documented with simple execution showcases, plus a designated template from one of the supported [templates](https://github.com/surveydown-dev).
@@ -111,7 +112,7 @@
 
 # surveydown 0.13.1
 
-- Updated citation to include *PLOS One* publication
+- Updated citation to include _PLOS One_ publication
 
 # surveydown 0.13.0
 
@@ -173,7 +174,7 @@
 # surveydown 0.11.0
 
 - Questions can now be defined using an external yml file, defaulting to `"questions.yml"`.
-- New `yml` argument in `sd_question()`, defaults to `"questions.yml"`, to allow users which yml file to use for questions. For details, refer to the [Defining Questions](https://surveydown.org/docs/defining-questions) documentation page. 
+- New `yml` argument in `sd_question()`, defaults to `"questions.yml"`, to allow users which yml file to use for questions. For details, refer to the [Defining Questions](https://surveydown.org/docs/defining-questions) documentation page.
 - Update to `sd_create_survey()`: now the the `template` argument is by default `"default"`.
 - Update to `sd_create_survey()`: new `template = "questions_yml"` option to create a survey with the `questions_yml` template.
 
@@ -282,9 +283,9 @@
 
 # surveydown 0.4.1
 
-- Modified survey rendering to move all rendered files into "_survey" folder.
-- Export survey question metadata to "_survey/questions.yml" file (see #132).
-- Survey content is now extracted and saved to '_survey/pages.rds', '_survey/head.rds', and '_survey/questions.yml' files for faster loading.
+- Modified survey rendering to move all rendered files into "\_survey" folder.
+- Export survey question metadata to "\_survey/questions.yml" file (see #132).
+- Survey content is now extracted and saved to '\_survey/pages.rds', '\_survey/head.rds', and '\_survey/questions.yml' files for faster loading.
 - Survey will load content from stored files if no changes detected in 'survey.qmd' or 'app.R' files.
 
 # surveydown 0.4.0
@@ -331,9 +332,9 @@
 # surveydown 0.3.3
 
 - Enhance: `sd_server()` now has a new parameter called `auto_scroll`. It's default to `TRUE`, which enables auto scrolling that tracks the user's input, can be turned off by changing to `FALSE`. Thanks to the contribution from [Zain Hoda](https://github.com/zainhoda1).
-- Enhance: `sd_question()` now has the `"matrix"` type. 
+- Enhance: `sd_question()` now has the `"matrix"` type.
 - Enhance: Asterisk, as an indication of required questions, is now moved to the top right corner of question containers.
-- Enhance: Replaced the default shiny alert with `sweetalert`. 
+- Enhance: Replaced the default shiny alert with `sweetalert`.
 
 # surveydown 0.3.2
 
@@ -419,12 +420,12 @@
 - Removed `sd_admin_ui()` and `sd_add_admin()` from the package.
 - Moved the surveydown.css and page_nav.js files into the R package and out of the Quarto extension.
 - Added keep alive functionality to the survey.
-- Bug fixes: 
+- Bug fixes:
   - The admin page password was looking for the `SUPABASE_PASSWORD` environment variable, but it should be `SURVEYDOWN_PASSWORD`.
   - The data fetching was not working to download the data as a CSV file in the admin page, now uses `sd_get_data()` and works.
   - The `show_if_custom` logic was not working for multiple conditions, now it does.
   - The `skip_if_custom` logic could error if a condition was `NULL` (fixed with `isTRUE()`).
-  - In `sd_config()`, items were being assigned with the ` <- ` operator, causing them to be deleted when the thing being assigned was `NULL`. Now changed to ` = `.
+  - In `sd_config()`, items were being assigned with the `<-` operator, causing them to be deleted when the thing being assigned was `NULL`. Now changed to `=`.
 
 # surveydown 0.1.0
 
@@ -467,7 +468,6 @@
 - (extension) Now the `example.qmd` survey has instructions for supabase configuration and shinyapps deployment.
 - (extension) Now the `.gitignore` file has `.Renviron` included. This file will store supabase password and is essential for shinyapps deployment. Eliminating this file from pushing to GitHub will ensure that your password is only saved locally.
 
-
 # surveydown 0.0.5
 
 - `create_survey()` changed to `sd_create_survey()` for function name consistency.
@@ -482,7 +482,6 @@
 - (extension) Questions are now encapsulated in a container that distinguishes from the descriptive texts.
 - (extension) Options of `mc_button` and `mu_multiple_buttons` types of questions are now centered.
 - Now the `surveydown::create_survey()` function will download the whole extension repo, containing the extension, an example survey, and an RStudio project.
-
 
 # surveydown 0.0.3
 
