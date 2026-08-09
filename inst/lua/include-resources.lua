@@ -25,7 +25,8 @@ function Meta(meta)
         "interaction.js",
         "keep_alive.js",
         "option_attr.js",
-        "progressbar.js"
+        "progressbar.js",
+        "ranking.js"
     }
 
     local css_files = {
