@@ -40,7 +40,7 @@ variable name in the resulting survey data.}
 \code{"mc"}, \code{"mc_multiple"}, \code{"mc_buttons"}, \code{"mc_multiple_buttons"},
 \code{"mc_image"}, \code{"mc_multiple_image"}, \code{"text"}, \code{"textarea"}, \code{"numeric"},
 \code{"slider"}, \code{"slider_numeric"}, \code{"date"}, \code{"daterange"}, \code{"matrix"}, and
-\code{"matrix_multiple"}. Defaults to \code{NULL}.}
+\code{"matrix_multiple"}, \code{"ranking"}. Defaults to \code{NULL}.}
 
 \item{label}{Character string. The label for the UI element, which can be
 formatted with markdown. Defaults to \code{NULL}}
@@ -174,6 +174,7 @@ The function supports various question types:
 selection per row, radio buttons)
 \item \code{"matrix_multiple"}: Matrix-style question where each row allows
 multiple selections (checkboxes)
+\item \code{"ranking"}: Ranking question where respondents can order options by preference
 }
 
 For \code{"matrix"} and \code{"matrix_multiple"} type questions, use the \code{row}

@@ -42,7 +42,7 @@
   // The item the dragged element should be inserted before: the closest one
   // whose vertical midpoint sits below the pointer, null = past the last
   // item, so append.
-  function itemsAfter(list, y) {
+  function itemAfter(list, y) {
     return itemsOf(list).reduce(
       function (closest, item) {
         if (item === dragging) return closest;

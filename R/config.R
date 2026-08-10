@@ -1640,8 +1640,11 @@ extract_question_structure_html <- function(html_content) {
     if(grepl("sd-ranking-list", type, fixed = TRUE)){
       item_nodes <- rvest::html_nodes(question_node, ".sd-ranking-item")
       if(length(item_nodes) > 0){
-        options <- rvest::html_atr(item_nodes, "data-value")
-        names(options) <- rvest::html_text(item_nodes, trim = TRUE)
+        options <- rvest::html_attr(item_nodes, "data-value")
+        # Read the label span, not the whole <li>: the item also contains
+        # the drag handle, whose glyph would otherwise end up in the label
+        label_nodes <- rvest::html_element(item_nodes, ".sd-ranking-label")
+        names(options) <- rvest::html_text(label_nodes, trim = TRUE)
         question_structure[[question_id]]$options <- as.list(options)
       }
     }
@@ -1868,7 +1871,7 @@ write_question_structure_yaml <- function(question_structure, file_yaml) {
     'js-range-slider' = 'slider_numeric',
     'shiny-date-input form-group shiny-input-container' = 'date',
     'shiny-date-range-input form-group shiny-input-container' = 'daterange',
-    'sd-ranking-list' = 'ranking',
+    'sd-ranking-list' = 'ranking'
   )
 
   # Add index to each question (1-based, for display order tracking)

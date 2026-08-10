@@ -477,25 +477,21 @@ qt_render_ranking <- function(a, ...){
   with(a, {
     # Hand-built markup rather than a Shiny input widget: the value is
     # reported by ranking.js via Shiny.setInputValue() as the drag order
-    # changes (same approach the slider renderer uses its label -> value
-    # ramping).
+    # changes (same approach the slider renderer uses for its label ->
+    # value remapping).
     labels <- names(choice_html(option))
     items <- lapply(seq_along(option), function(i) {
       shiny::tags$li(
         class = "sd-ranking-item",
         `data-value` = unname(option[i]),
-        shiny::tags$li(
-          class = "sd-ranking-item",
-          `data-value` = unname(option[i]),
-          shiny::tags$span(
-            class = "sd-ranking-label",
-            shiny::HTML(labels[i])
-          ),
-          shiny::tag$span(
-            class = "sd-ranking-handle",
-            `aria-hidden` = "true",
-            "\u2261"
-          )
+        shiny::tags$span(
+          class = "sd-ranking-label",
+          shiny::HTML(labels[i])
+        ),
+        shiny::tags$span(
+          class = "sd-ranking-handle",
+          `aria-hidden` = "true",
+          "\u2261"
         )
       )
     })
