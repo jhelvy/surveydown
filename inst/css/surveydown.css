@@ -431,6 +431,65 @@ a:hover {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-color) 35%, transparent);
 }
 
+/* Ranking drag to reorder */
+.sd-ranking-list{
+  list-style: none;
+  padding : 0;
+  margin: 0.5rem 0 0 0;
+  counter-reset: sd-rank;
+}
+
+.sd-ranking-item{
+  display:flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  user-select: none;
+  --webkit-user-select: none;
+  cursor: grab;
+}
+
+/* Position number via CSS counter, so a reorder renumbers for free with no JS bookkeeping. */
+.sd-ranking-item::before{
+  counter-increment: sd-rank;
+  content: counter(sd-rank);
+  flex: 0 0 1.75em;
+  height: 1.75em;
+  line-height: 1.75em;
+  text-align: center;
+  border-radius: 50%;
+  background-color: var(--theme-color);
+  color: #fff;
+  font-size: 0.85em;
+}
+
+/* Only the handle disables touch scrolling (see the pointerdown guard in ranking.js),
+  so swiping over the body of a long list still scrolls the page on mobile.
+*/
+.sd-ranking-handle{
+  touch-action: none;
+  cursor: grab;
+  margin-left: auto;
+  padding: 0 4px;
+  color: #999;
+  line-height: 1;
+}
+
+.sd-ranking-item:hover{
+  border-color: var(--theme-color);
+}
+
+.sd-ranking-dragging{
+  cursor: grabbing;
+  opacity: 0.65;
+  border-color: var(--theme-color);
+  box-shadow: 0 2px 8px rgba(0,0,0, 0.15);
+}
+
 /* Survey mode banner (preview mode / database not connected) */
 .sd-mode-banner {
     position: fixed;
